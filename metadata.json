@@ -1,5 +1,0 @@
-{
-  "name": "Live Analytics Dashboard",
-  "description": "A high-performance real-time dashboard featuring 20 simultaneous live-updating charts using Chart.js and Angular Signals.",
-  "requestFramePermissions": []
-}
