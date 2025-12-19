@@ -16,8 +16,14 @@ export class AppComponent {
   
   charts = this.dataService.charts;
   isStreaming = this.dataService.isStreaming;
+  updateFrequency = this.dataService.updateFrequency;
 
   toggleStream() {
     this.dataService.toggleStream();
+  }
+
+  onFrequencyChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.dataService.setUpdateFrequency(Number(value));
   }
 }

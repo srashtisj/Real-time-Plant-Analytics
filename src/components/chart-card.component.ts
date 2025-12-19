@@ -9,31 +9,41 @@ declare var Chart: any;
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="group relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-blue-900/20 dark:hover:border-blue-500/30">
+    <div class="group relative bg-white dark:bg-black rounded-lg shadow-sm border border-slate-200 dark:border-green-800 p-4 h-full flex flex-col transition-all duration-300 hover:shadow-lg dark:hover:border-green-500/80 dark:hover:shadow-[0_0_15px_rgba(0,255,65,0.3)]">
       
-      <!-- Premium Glow Effect -->
-      <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      <!-- Matrix/Cyberpunk Corner Accents (only in dark mode) -->
+      <div class="hidden dark:block absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-green-500 rounded-tl-sm"></div>
+      <div class="hidden dark:block absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-green-500 rounded-tr-sm"></div>
+      <div class="hidden dark:block absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-green-500 rounded-bl-sm"></div>
+      <div class="hidden dark:block absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-green-500 rounded-br-sm"></div>
 
       <div class="relative z-10 flex justify-between items-center mb-4">
         <div class="flex items-center space-x-2 overflow-hidden">
-          <div class="w-1 h-4 rounded-full" [style.backgroundColor]="color()"></div>
-          <h3 class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest truncate" [title]="title()">{{ title() }}</h3>
+          <div class="w-1 h-3 rounded-sm dark:bg-green-500" [class.bg-slate-400]="!isDarkMode()"></div>
+          <h3 class="text-xs font-bold font-mono uppercase tracking-widest truncate text-slate-600 dark:text-green-500" [title]="title()">
+            {{ title() }}
+          </h3>
         </div>
-        <span class="text-[10px] font-mono font-medium px-2 py-1 rounded-md transition-colors" 
-              [class.bg-green-100]="trend() > 0" 
-              [class.text-green-700]="trend() > 0"
-              [class.dark:bg-green-500/20]="trend() > 0"
-              [class.dark:text-green-400]="trend() > 0"
+        <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded border" 
+              [class.bg-green-100]="!isDarkMode() && trend() > 0" 
+              [class.text-green-700]="!isDarkMode() && trend() > 0"
+              [class.border-green-200]="!isDarkMode() && trend() > 0"
               
-              [class.bg-red-100]="trend() < 0" 
-              [class.text-red-700]="trend() < 0"
-              [class.dark:bg-red-500/20]="trend() < 0"
-              [class.dark:text-red-400]="trend() < 0"
+              [class.bg-red-100]="!isDarkMode() && trend() < 0" 
+              [class.text-red-700]="!isDarkMode() && trend() < 0"
+              [class.border-red-200]="!isDarkMode() && trend() < 0"
 
-              [class.bg-slate-100]="trend() === 0" 
-              [class.text-slate-600]="trend() === 0"
-              [class.dark:bg-slate-800]="trend() === 0"
-              [class.dark:text-slate-400]="trend() === 0">
+              [class.dark:bg-green-900/30]="trend() > 0"
+              [class.dark:text-green-400]="trend() > 0"
+              [class.dark:border-green-600]="trend() > 0"
+              
+              [class.dark:bg-red-900/30]="trend() < 0"
+              [class.dark:text-red-400]="trend() < 0"
+              [class.dark:border-red-600]="trend() < 0"
+              
+              [class.border-transparent]="trend() === 0"
+              [class.bg-slate-100]="!isDarkMode() && trend() === 0"
+              [class.dark:text-slate-500]="trend() === 0">
           {{ trendLabel() }}
         </span>
       </div>
@@ -42,12 +52,12 @@ declare var Chart: any;
         <canvas #canvas></canvas>
       </div>
       
-      <div class="relative z-10 mt-4 flex justify-between items-end border-t border-slate-100 dark:border-slate-800 pt-3">
-        <div>
-          <p class="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold">Current Value</p>
-          <p class="text-xl font-bold text-slate-800 dark:text-slate-100 tabular-nums tracking-tight">{{ currentValue() }}</p>
+      <div class="relative z-10 mt-3 flex justify-between items-end border-t border-slate-100 dark:border-green-900/50 pt-2">
+        <div class="font-mono">
+          <p class="text-[10px] uppercase tracking-wide text-slate-400 dark:text-green-800">Val_Hex_0x</p>
+          <p class="text-lg font-bold text-slate-800 dark:text-green-400 tabular-nums leading-none mt-1">{{ currentValue() }}</p>
         </div>
-        <div class="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
+        <div class="text-[9px] uppercase font-bold text-slate-400 dark:text-green-900 bg-slate-50 dark:bg-green-900/10 px-1 py-0.5 rounded dark:border dark:border-green-900/30">
            {{ type() }}
         </div>
       </div>
@@ -66,8 +76,11 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
   
   private chartInstance: any = null;
   private themeService = inject(ThemeService);
+  
+  // Expose for template
+  isDarkMode = this.themeService.isDarkMode;
 
-  // Computed properties for display
+  // Computed properties
   currentValue = computed(() => {
     const d = this.data();
     if (!d || d.length === 0) return '0';
@@ -82,11 +95,10 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
 
   trendLabel = computed(() => {
     const t = this.trend();
-    return t > 0 ? `+${t}` : `${t}`;
+    return t > 0 ? `▲${t}` : `${t}`;
   });
 
   constructor() {
-    // Data Effect
     effect(() => {
       const newData = this.data();
       if (this.chartInstance) {
@@ -94,7 +106,6 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    // Theme Effect
     effect(() => {
       const isDark = this.themeService.isDarkMode();
       if (this.chartInstance) {
@@ -134,26 +145,35 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
   private updateChartTheme(isDark: boolean) {
     if (!this.chartInstance) return;
     
-    // Update Scale Colors
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)';
-    const textColor = isDark ? '#94a3b8' : '#64748b'; // slate-400 / slate-500
+    // Matrix Mode Colors
+    const gridColor = isDark ? 'rgba(0, 255, 65, 0.1)' : 'rgba(0, 0, 0, 0.04)';
+    const textColor = isDark ? '#00FF41' : '#64748b';
     
     // Helper to safely access nested properties
     const options = this.chartInstance.options;
+    const chartType = this.type();
 
-    // Update Scales
-    if (options.scales.x) {
-        if (options.scales.x.grid) options.scales.x.grid.color = 'transparent'; // keep x clean usually
-    }
+    // Dynamically update colors based on theme
+    const dataset = this.chartInstance.data.datasets[0];
+    const baseColor = this.color();
+    
+    // In Matrix mode, force green/cyber theme or keep colors?
+    // Let's keep original colors but make them glowy if possible, 
+    // OR just ensure they look good on black.
+    // The dataset border/bg colors are set in getChartConfig. We need to re-generate them.
+    // However, updating the config object deeply is complex in Chart.js without full re-render.
+    // For this demo, since we want "Neon", let's leave the dataset colors as is (they are bright)
+    // but update the scales and legends.
+
     if (options.scales.y) {
         if (options.scales.y.grid) options.scales.y.grid.color = gridColor;
+        if (options.scales.y.ticks) options.scales.y.ticks.color = textColor;
     }
     if (options.scales.r) {
         if (options.scales.r.grid) options.scales.r.grid.color = gridColor;
+        if (options.scales.r.angleLines) options.scales.r.angleLines.color = gridColor;
         if (options.scales.r.pointLabels) options.scales.r.pointLabels.color = textColor;
     }
-
-    // Update Legend
     if (options.plugins.legend) {
         options.plugins.legend.labels.color = textColor;
     }
@@ -174,14 +194,14 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
 
     if (isMultiColor) {
       bgColors = this.generateColorPalette(baseColor, dataCount);
-      borderColors = isDark ? '#0f172a' : '#ffffff'; // Border matches card bg
+      borderColors = isDark ? '#000000' : '#ffffff'; 
     } else {
-      bgColors = this.hexToRgba(baseColor, isRadar ? 0.2 : 0.5);
+      bgColors = this.hexToRgba(baseColor, isRadar || isDark ? 0.2 : 0.5);
       borderColors = baseColor;
     }
 
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)';
-    const textColor = isDark ? '#94a3b8' : '#64748b';
+    const gridColor = isDark ? 'rgba(0, 255, 65, 0.15)' : 'rgba(0, 0, 0, 0.04)';
+    const textColor = isDark ? '#00FF41' : '#64748b';
 
     return {
       type: chartType,
@@ -192,11 +212,11 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
           data: this.data(),
           backgroundColor: bgColors,
           borderColor: borderColors,
-          borderWidth: 2,
-          tension: 0.3, 
-          pointRadius: (chartType === 'line' || isRadar) ? 0 : 0, 
+          borderWidth: isDark ? 1 : 2,
+          tension: 0.2, // Sharper lines for tech feel
+          pointRadius: 0, 
           pointHoverRadius: 4,
-          pointBackgroundColor: baseColor,
+          pointBackgroundColor: '#fff',
           fill: chartType === 'line' || isRadar,
         }]
       },
@@ -204,6 +224,10 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         animation: false, 
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
         plugins: {
           legend: {
             display: isMultiColor || isRadar, 
@@ -211,24 +235,22 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
             labels: {
                 boxWidth: 8,
                 padding: 10,
-                font: { size: 9, family: 'Inter' },
+                font: { size: 9, family: isDark ? 'Courier New' : 'Inter' },
                 usePointStyle: true,
                 color: textColor
             }
           },
           tooltip: {
             enabled: true,
-            mode: 'index',
-            intersect: false,
-            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.9)',
-            titleColor: isDark ? '#0f172a' : '#f8fafc',
-            bodyColor: isDark ? '#0f172a' : '#f8fafc',
-            padding: 10,
-            cornerRadius: 8,
-            titleFont: { size: 11, weight: 'bold', family: 'Inter' },
-            bodyFont: { size: 11, family: 'Inter' },
-            borderColor: isDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
-            borderWidth: 1
+            backgroundColor: isDark ? 'rgba(0, 20, 0, 0.9)' : 'rgba(15, 23, 42, 0.9)',
+            titleColor: isDark ? '#00FF41' : '#f8fafc',
+            bodyColor: isDark ? '#00FF41' : '#f8fafc',
+            borderColor: isDark ? '#00FF41' : 'transparent',
+            borderWidth: isDark ? 1 : 0,
+            titleFont: { family: 'Courier New' },
+            bodyFont: { family: 'Courier New' },
+            padding: 8,
+            displayColors: true
           }
         },
         scales: this.getScalesConfig(chartType, gridColor, textColor)
@@ -247,7 +269,7 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
                 angleLines: { color: gridColor },
                 pointLabels: { 
                     display: type === 'radar',
-                    font: { size: 9, family: 'Inter' },
+                    font: { size: 9, family: 'Courier New' },
                     color: textColor
                 }
             }
@@ -264,13 +286,15 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
             display: true,
             grid: { color: gridColor },
             ticks: { display: false },
-            border: { display: false }, // Remove axis line
+            border: { display: false }, 
             beginAtZero: true
         }
     };
   }
 
   private hexToRgba(hex: string, alpha: number) {
+    // If it's a known color name, we might need a map, but assuming hex for now
+    if (!hex.startsWith('#')) return hex;
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -292,6 +316,7 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
   }
 
   private adjustColor(color: string, amount: number) {
+     if (!color.startsWith('#')) return color;
     return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
   }
 }
