@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, input, effect, OnDestroy, AfterViewInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../services/theme.service';
+import { ChartLoaderService } from '../services/chart-loader.service';
 
 declare var Chart: any;
 
@@ -76,6 +77,7 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
   
   private chartInstance: any = null;
   private themeService = inject(ThemeService);
+  private chartLoader = inject(ChartLoaderService);
   
   // Expose for template
   isDarkMode = this.themeService.isDarkMode;
@@ -114,8 +116,14 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit() {
-    this.initChart();
+  async ngAfterViewInit() {
+    // Wait for the library to be loaded (lazy loaded)
+    try {
+      await this.chartLoader.loadChartJs();
+      this.initChart();
+    } catch (e) {
+      console.error('Could not load Chart.js', e);
+    }
   }
 
   ngOnDestroy() {
@@ -151,19 +159,6 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
     
     // Helper to safely access nested properties
     const options = this.chartInstance.options;
-    const chartType = this.type();
-
-    // Dynamically update colors based on theme
-    const dataset = this.chartInstance.data.datasets[0];
-    const baseColor = this.color();
-    
-    // In Matrix mode, force green/cyber theme or keep colors?
-    // Let's keep original colors but make them glowy if possible, 
-    // OR just ensure they look good on black.
-    // The dataset border/bg colors are set in getChartConfig. We need to re-generate them.
-    // However, updating the config object deeply is complex in Chart.js without full re-render.
-    // For this demo, since we want "Neon", let's leave the dataset colors as is (they are bright)
-    // but update the scales and legends.
 
     if (options.scales.y) {
         if (options.scales.y.grid) options.scales.y.grid.color = gridColor;
@@ -293,7 +288,6 @@ export class ChartCardComponent implements AfterViewInit, OnDestroy {
   }
 
   private hexToRgba(hex: string, alpha: number) {
-    // If it's a known color name, we might need a map, but assuming hex for now
     if (!hex.startsWith('#')) return hex;
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);

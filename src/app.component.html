@@ -149,14 +149,20 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
       @for (chart of charts(); track chart.id) {
         <div class="h-64 sm:h-72"> 
-          <app-chart-card
-            [chartId]="chart.id"
-            [title]="chart.title"
-            [type]="chart.type"
-            [data]="chart.data"
-            [labels]="chart.labels"
-            [color]="chart.color"
-          ></app-chart-card>
+          @defer (on viewport) {
+            <app-chart-card
+              [chartId]="chart.id"
+              [title]="chart.title"
+              [type]="chart.type"
+              [data]="chart.data"
+              [labels]="chart.labels"
+              [color]="chart.color"
+            ></app-chart-card>
+          } @placeholder {
+            <div class="h-full flex items-center justify-center bg-slate-100 dark:bg-green-900/10 rounded-lg border border-dashed border-slate-300 dark:border-green-800">
+                <div class="animate-pulse text-xs text-slate-400 dark:text-green-700 font-mono">INITIALIZING_MODULE...</div>
+            </div>
+          }
         </div>
       }
     </div>
